@@ -10,6 +10,7 @@ from selenium.webdriver.chrome.options import Options
 import time
 import tempfile
 
+
 def calculate_bounding_box(coordinates):
     """Calculate the bounding box of the GPS coordinates."""
     min_lat = min(coord[0] for coord in coordinates)
@@ -114,13 +115,15 @@ def resize_and_crop(image, target_width, target_height):
 
     return image
 
-st.set_page_config(layout="centered")
-# Create two columns
-col1, col2 = st.columns(2)
+st.set_page_config(layout="wide")
 
+st.write("# Strava Art")
+st.write("### Download a GPX file from your Strava activity on the Strava desktop website ([docs](https://support.strava.com/hc/en-us/articles/216918437-Exporting-your-Data-and-Bulk-Export)) and combine it with an image!")
+col1, col2 = st.columns([3,5])
+col1.write("## File uploads")
+col11, col12 = col1.columns([1,1])
 
-st.header("GPX File Upload")
-gpx_file = st.file_uploader("Upload a GPX file", type=["gpx"])
+gpx_file = col11.file_uploader("Upload a GPX file", type=["gpx"])
 
 if gpx_file is not None:
     gpx = gpxpy.parse(gpx_file)
@@ -130,24 +133,31 @@ if gpx_file is not None:
             segment_coords = [(point.latitude, point.longitude) for point in segment.points]
             coordinates.extend(segment_coords)
     
-    st.write(f"Number of points: {len(coordinates)}")
 
 
-st.header("Image Upload and Customization")
-img_file = st.file_uploader("Upload an image", type=["png", "jpg", "jpeg"])
+img_file = col12.file_uploader("Upload an image", type=["png", "jpg", "jpeg"])
 
-circle_color = st.color_picker("Choose circle color", "#FF0000")
-circle_size = st.slider("Circle size", 1, 20, 5)
-dot_spacing = st.slider("Dot spacing", 1, 100, 36, help="Higher values will space out the dots more")
-margin = st.slider("Margin", 0.0, 0.25, 0.05, help="Margin around the edges of the image (as a fraction)")
-background_opacity = st.slider("Background darkening", 0.0, 1.0, 0.3, help="Opacity of the dark overlay (0 = no darkening, 1 = fully black)")
-map_opacity = st.slider("Map overlay opacity", 0.0, 1.0, 0.5, help="Opacity of the map overlay (0 = no map, 1 = full map)")
+col11.header("Customization")
+# remake columns so the options are aligned
+col11, col12 = col1.columns([1,1])
+
+circle_color = col11.color_picker("Circle color", "#FF0000")
+circle_size = col12.slider("Circle size", 1, 20, 3)
+dot_spacing = col11.slider("Dot spacing", 1, 100, 36, help="Higher values will space out the dots more")
+margin = col12.slider("Margin", 0.0, 0.25, 0.05, help="Margin around the edges of the image (as a fraction)")
+background_opacity = col11.slider("Background darkening", 0.0, 1.0, 0.66, help="Opacity of the dark overlay (0 = no darkening, 1 = fully black)")
+map_opacity = col12.slider("Map overlay opacity", 0.0, 1.0, 0.23, help="Opacity of the map overlay (0 = no map, 1 = full map)")
+percentage_hide_on_either_end = col11.slider("Percentage to hide on either end", 0, 50, 10, help="Percentage of the image to hide on either end")
 
 if img_file is not None and gpx_file is not None:
     original_image = Image.open(img_file).convert("RGBA")
     
+    # shrink coordinates by percentage_hide_on_either_end on either end
+    start_index = int(len(coordinates) * percentage_hide_on_either_end / 100)
+    end_index = len(coordinates) - start_index
+    coordinates = coordinates[start_index:end_index]
     # Generate map image
-    map_image = get_map_image(coordinates, 800, 600)  # Fixed size for consistency
+    map_image = get_map_image(coordinates, 1600, 1200)  # Fixed size for consistency
     
     # Resize and crop the original image to match the map image dimensions
     resized_original = resize_and_crop(original_image, map_image.width, map_image.height)
@@ -160,7 +170,8 @@ if img_file is not None and gpx_file is not None:
     
     result_image = draw_gpx_on_image(darkened_image, coordinates, circle_color, circle_size, dot_spacing, margin)
     
-    st.image(result_image, caption="GPX data overlaid on image with map", use_column_width=True)
+    col2.write("GPX data overlaid on image with map")
+    col2.image(result_image, use_column_width=True)
     
     # Option to download the result
     buf = io.BytesIO()
