@@ -1,0 +1,5 @@
+uv
+streamlit==1.38.0
+gpxpy==1.6.2
+streamlit-folium==0.22.0
+selenium==4.24.0
