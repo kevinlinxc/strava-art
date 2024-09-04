@@ -2,6 +2,11 @@
 
 Simple Streamlit App that takes a Strava activity's GPX file and an image and gives you some control over how
 they are overlaid with a map to make some half-decent art.
+
+Interface:
+![alt text](assets/interface.png)
+
+Example output:
 ![alt text](assets/example.png)
 
 ## How to use

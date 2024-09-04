@@ -145,7 +145,7 @@ circle_color = col11.color_picker("Circle color", "#FF0000")
 circle_size = col12.slider("Circle size", 1, 20, 3)
 dot_spacing = col11.slider("Dot spacing", 1, 100, 36, help="Higher values will space out the dots more")
 margin = col12.slider("Margin", 0.0, 0.25, 0.05, help="Margin around the edges of the image (as a fraction)")
-background_opacity = col11.slider("Background darkening", 0.0, 1.0, 0.66, help="Opacity of the dark overlay (0 = no darkening, 1 = fully black)")
+background_opacity = col11.slider("Background darkening", 0.0, 1.0, 0.25, help="Opacity of the dark overlay (0 = no darkening, 1 = fully black)")
 map_opacity = col12.slider("Map overlay opacity", 0.0, 1.0, 0.23, help="Opacity of the map overlay (0 = no map, 1 = full map)")
 percentage_hide_on_either_end = col11.slider("Percentage to hide on either end", 0, 50, 10, help="Percentage of the image to hide on either end")
 
@@ -160,25 +160,20 @@ if img_file is not None and gpx_file is not None:
     map_image = get_map_image(coordinates, 1600, 1200)  # Fixed size for consistency
     
     # Resize and crop the original image to match the map image dimensions
-    resized_original = resize_and_crop(original_image, map_image.width, map_image.height)
-    
-    # Blend map with resized original image
-    blended_image = Image.blend(resized_original, map_image.convert("RGBA"), map_opacity)
-    
-    # Darken the blended image
-    darkened_image = darken_image(blended_image, background_opacity)
-    
-    result_image = draw_gpx_on_image(darkened_image, coordinates, circle_color, circle_size, dot_spacing, margin)
-    
-    col2.write("GPX data overlaid on image with map")
-    col2.image(result_image, use_column_width=True)
-    
-    # Option to download the result
-    buf = io.BytesIO()
-    result_image.save(buf, format="PNG")
-    btn = st.download_button(
-        label="Download Image",
-        data=buf.getvalue(),
-        file_name="gpx_art_with_map.png",
-        mime="image/png"
-    )
+    # resized_original = resize_and_crop(original_image, map_image.width, map_image.height)
+    placeholder = col2.container()
+    # resize map image to match original image dimensions
+    with placeholder:
+        with st.spinner("Processing..."):
+            resized_map = resize_and_crop(map_image, original_image.width, original_image.height)
+            
+            # Blend map with resized original image
+            # blended_image = Image.blend(resized_original, map_image.convert("RGBA"), map_opacity)
+            blended_image = Image.blend(original_image, resized_map.convert("RGBA"), map_opacity)
+            
+            # Darken the blended image
+            darkened_image = darken_image(blended_image, background_opacity)
+            
+            result_image = draw_gpx_on_image(darkened_image, coordinates, circle_color, circle_size, dot_spacing, margin)
+            
+            col2.image(result_image, use_column_width=True)
