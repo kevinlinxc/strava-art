@@ -118,8 +118,8 @@ def resize_and_crop(image, target_width, target_height):
 st.set_page_config(layout="wide")
 
 st.write("# Strava Art")
-st.write("### Download a GPX file from your Strava activity on the Strava desktop website ([docs](https://support.strava.com/hc/en-us/articles/216918437-Exporting-your-Data-and-Bulk-Export)) and combine it with an image!")
 col1, col2 = st.columns([3,5])
+col1.write("### Download a GPX file from your Strava activity on the Strava desktop website ([docs](https://support.strava.com/hc/en-us/articles/216918437-Exporting-your-Data-and-Bulk-Export)) and combine it with an image!")
 col1.write("## File uploads")
 col11, col12 = col1.columns([1,1])
 
